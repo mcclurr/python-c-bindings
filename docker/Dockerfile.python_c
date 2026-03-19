@@ -1,4 +1,5 @@
-FROM python:3.11-slim
+# -------- builder --------
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
@@ -7,15 +8,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
  && rm -rf /var/lib/apt/lists/*
 
+COPY app/native/ /app/native/
+
+RUN cmake -S /app/native -B /app/native/build \
+ && cmake --build /app/native/build --config Release
+
+
+# -------- runtime --------
+FROM python:3.11-slim
+
+WORKDIR /app
+
 COPY app/requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/src/ /app/src/
-COPY app/native/ /app/native/
-
-RUN cmake -S /app/native -B /app/native/build \
- && cmake --build /app/native/build --config Release \
- && cp /app/native/build/libadd.so /app/native/libadd.so
+COPY --from=builder /app/native/build/libadd.so /app/native/libadd.so
 
 RUN mkdir -p /app/out
 
