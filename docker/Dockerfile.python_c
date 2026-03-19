@@ -4,6 +4,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    cmake \
  && rm -rf /var/lib/apt/lists/*
 
 COPY app/requirements.txt /app/
@@ -12,9 +13,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app/src/ /app/src/
 COPY app/native/ /app/native/
 
-RUN gcc -shared -fPIC -O2 \
-    /app/native/add.c \
-    -o /app/native/libadd.so
+RUN cmake -S /app/native -B /app/native/build \
+ && cmake --build /app/native/build --config Release \
+ && cp /app/native/build/libadd.so /app/native/libadd.so
 
 RUN mkdir -p /app/out
 
