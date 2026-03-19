@@ -1,0 +1,21 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY app/requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app/src/ /app/src/
+COPY app/native/ /app/native/
+
+RUN gcc -shared -fPIC -O2 \
+    /app/native/add.c \
+    -o /app/native/libadd.so
+
+RUN mkdir -p /app/out
+
+CMD ["python", "-u", "src/main.py"]

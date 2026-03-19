@@ -1,0 +1,8 @@
+services:
+  python_c_demo:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.python_c
+    command: ["python", "-u", "src/main.py"]
+    volumes:
+      - ./out:/app/out
